@@ -236,7 +236,7 @@ func Example_nonRepeatableRead() {
 	}
 
 	{
-		// tx1 can't see the committed changes.
+		// tx1 see a different result than before
 		rows, err := tx1.Query("SELECT * FROM users")
 		if err != nil {
 			panic(err)
