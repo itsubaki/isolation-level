@@ -8,6 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// https://dev.mysql.com/doc/refman/5.7/en/innodb-transaction-isolation-levels.html
+
 func Example_dirtyRead() {
 	// create database
 	{

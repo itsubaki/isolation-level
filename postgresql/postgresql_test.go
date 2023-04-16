@@ -8,10 +8,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func Example_dirtyRead() {
-	// https://www.postgresql.org/docs/current/transaction-iso.html
-	// Dirty Read: Allowed, but not in PG
+// https://www.postgresql.org/docs/current/transaction-iso.html
+// Table 13.1. Transaction Isolation Levels
+//
+// | Isolation Level  | Dirty Read             | Nonrepeatable Read | Phantom Read           | Serialization Anomaly |
+// |------------------|------------------------|--------------------|------------------------|-----------------------|
+// | Read uncommitted | Allowed, but not in PG | Possible           | Possible               | Possible              |
+// | Read committed   | Not possible           | Possible           | Possible               | Possible              |
+// | Repeatable read  | Not possible           | Not possible       | Allowed, but not in PG | Possible              |
+// | Serializable     | Not possible           | Not possible       | Not possible           | Not possible          |
 
+func Example_dirtyRead_not() {
 	// create database
 	{
 		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret sslmode=disable")
