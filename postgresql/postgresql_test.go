@@ -1,17 +1,20 @@
-package mysql_test
+package postgresql_test
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 func Example_dirtyRead() {
+	// https://www.postgresql.org/docs/current/transaction-iso.html
+	// Dirty Read: Allowed, but not in PG
+
 	// create database
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -21,14 +24,18 @@ func Example_dirtyRead() {
 			panic(err)
 		}
 
-		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS dirty_read"); err != nil {
+		if _, err := db.Exec("DROP DATABASE IF EXISTS dirty_read"); err != nil {
+			panic(err)
+		}
+
+		if _, err := db.Exec("CREATE DATABASE dirty_read"); err != nil {
 			panic(err)
 		}
 	}
 
 	// create table and insert data
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/dirty_read")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=dirty_read sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -55,7 +62,7 @@ func Example_dirtyRead() {
 		}
 	}
 
-	db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/dirty_read")
+	db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=dirty_read sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +83,7 @@ func Example_dirtyRead() {
 	}
 
 	{
-		rows, err := tx1.Query("SELECT * FROM users ORDER BY id")
+		rows, err := tx1.Query("SELECT * FROM users")
 		if err != nil {
 			panic(err)
 		}
@@ -102,14 +109,14 @@ func Example_dirtyRead() {
 	}
 
 	{
-		rows, err := tx1.Query("SELECT * FROM users ORDER BY id")
+		rows, err := tx1.Query("SELECT * FROM users")
 		if err != nil {
 			panic(err)
 		}
 		defer rows.Close()
 
-		// tx2 can see the uncommitted changes.
-		// 1 Alien 100
+		// tx2 can't see the uncommitted changes.
+		// 1 Alice 100
 		// 2 Bob 200
 		for rows.Next() {
 			var id int
@@ -134,14 +141,14 @@ func Example_dirtyRead() {
 	// Output:
 	// 1 Alice 100
 	// 2 Bob 200
-	// 1 Alien 100
+	// 1 Alice 100
 	// 2 Bob 200
 }
 
 func Example_nonRepeatableRead() {
 	// create database
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -151,14 +158,18 @@ func Example_nonRepeatableRead() {
 			panic(err)
 		}
 
-		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS non_repeatable_read"); err != nil {
+		if _, err := db.Exec("DROP DATABASE IF EXISTS non_repeatable_read"); err != nil {
+			panic(err)
+		}
+
+		if _, err := db.Exec("CREATE DATABASE non_repeatable_read"); err != nil {
 			panic(err)
 		}
 	}
 
 	// create table and insert data
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/non_repeatable_read")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=non_repeatable_read sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -185,7 +196,7 @@ func Example_nonRepeatableRead() {
 		}
 	}
 
-	db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/non_repeatable_read")
+	db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=non_repeatable_read sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
@@ -271,7 +282,7 @@ func Example_nonRepeatableRead() {
 func Example_phantomRead() {
 	// create database
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -281,14 +292,18 @@ func Example_phantomRead() {
 			panic(err)
 		}
 
-		if _, err := db.Exec("CREATE DATABASE IF NOT EXISTS non_repeatable_read"); err != nil {
+		if _, err := db.Exec("DROP DATABASE IF EXISTS phantom_read"); err != nil {
+			panic(err)
+		}
+
+		if _, err := db.Exec("CREATE DATABASE phantom_read"); err != nil {
 			panic(err)
 		}
 	}
 
 	// create table and insert data
 	{
-		db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/non_repeatable_read")
+		db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=phantom_read sslmode=disable")
 		if err != nil {
 			panic(err)
 		}
@@ -315,7 +330,7 @@ func Example_phantomRead() {
 		}
 	}
 
-	db, err := sql.Open("mysql", "root:secret@(127.0.0.1:3306)/non_repeatable_read")
+	db, err := sql.Open("postgres", "host=127.0.0.1 port=5432 user=postgres password=secret dbname=phantom_read sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
