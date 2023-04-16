@@ -83,7 +83,7 @@ func Example_dirtyRead() {
 	}
 
 	{
-		rows, err := tx1.Query("SELECT * FROM users")
+		rows, err := tx1.Query("SELECT * FROM users ORDER BY id")
 		if err != nil {
 			panic(err)
 		}
@@ -109,7 +109,7 @@ func Example_dirtyRead() {
 	}
 
 	{
-		rows, err := tx1.Query("SELECT * FROM users")
+		rows, err := tx1.Query("SELECT * FROM users ORDER BY id")
 		if err != nil {
 			panic(err)
 		}
