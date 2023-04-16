@@ -75,34 +75,38 @@ func Example_dirtyRead() {
 		panic(err)
 	}
 
-	rows, err := tx2.Query("SELECT * FROM users")
-	if err != nil {
-		panic(err)
-	}
-
-	// 1 Alice 100
-	// 2 Bob 200
-	for rows.Next() {
-		var id int
-		var name string
-		var score int
-		if err := rows.Scan(&id, &name, &score); err != nil {
+	{
+		rows, err := tx1.Query("SELECT * FROM users")
+		if err != nil {
 			panic(err)
 		}
+		defer rows.Close()
 
-		fmt.Println(id, name, score)
+		// 1 Alice 100
+		// 2 Bob 200
+		for rows.Next() {
+			var id int
+			var name string
+			var score int
+			if err := rows.Scan(&id, &name, &score); err != nil {
+				panic(err)
+			}
+
+			fmt.Println(id, name, score)
+		}
 	}
 
 	// Update but not commit. Alice -> Alien.
-	if _, err := tx1.Exec("UPDATE users SET name = 'Alien' WHERE id = 1"); err != nil {
+	if _, err := tx2.Exec("UPDATE users SET name = 'Alien' WHERE id = 1"); err != nil {
 		panic(err)
 	}
 
 	{
-		rows, err := tx2.Query("SELECT * FROM users")
+		rows, err := tx1.Query("SELECT * FROM users")
 		if err != nil {
 			panic(err)
 		}
+		defer rows.Close()
 
 		// tx2 can see the uncommitted changes.
 		// 1 Alien 100
@@ -206,6 +210,7 @@ func Example_nonRepeatableRead() {
 		if err != nil {
 			panic(err)
 		}
+		defer rows.Close()
 
 		// 1 Alce 100
 		// 2 Bob 200
@@ -230,23 +235,26 @@ func Example_nonRepeatableRead() {
 		panic(err)
 	}
 
-	// tx1 can't see the committed changes.
-	rows, err := tx1.Query("SELECT * FROM users")
-	if err != nil {
-		panic(err)
-	}
-
-	// 1 Alien 100
-	// 2 Bob 200
-	for rows.Next() {
-		var id int
-		var name string
-		var score int
-		if err := rows.Scan(&id, &name, &score); err != nil {
+	{
+		// tx1 can't see the committed changes.
+		rows, err := tx1.Query("SELECT * FROM users")
+		if err != nil {
 			panic(err)
 		}
+		defer rows.Close()
 
-		fmt.Println(id, name, score)
+		// 1 Alien 100
+		// 2 Bob 200
+		for rows.Next() {
+			var id int
+			var name string
+			var score int
+			if err := rows.Scan(&id, &name, &score); err != nil {
+				panic(err)
+			}
+
+			fmt.Println(id, name, score)
+		}
 	}
 
 	if err := tx1.Commit(); err != nil {
