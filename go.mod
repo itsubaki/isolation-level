@@ -1,4 +1,4 @@
-module github.com/itsubaki/isolation-level
+module github.com/itsubaki/isolation-levels
 
 go 1.20
 
