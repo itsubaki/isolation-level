@@ -110,7 +110,7 @@ func Example_dirtyRead() {
 		}
 		defer rows.Close()
 
-		// tx2 can see the uncommitted changes.
+		// tx1 can see the uncommitted changes.
 		// 1 Alien 100
 		// 2 Bob 200
 		for rows.Next() {
